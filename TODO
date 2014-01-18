@@ -1,0 +1,16 @@
+10/12/2013:
+===========
+- Intégrer un système de vérification de PID disponibles (cf wikipedia).
+
+[FIXED] - Ajouter une fonction du type void/short int obdii_free_response(obdii_response* response);
+[FIXED] - Ajouter une fonction du type void/short int obdii_free_request(obdii_request* request);
+
+
+31/12/2013:
+===========
+- Créer un système de construction automatique du fichier libobdii.h.
+- Revoir les helpers pour intégrer la notion de taille de contenu.
+- Commencer à documenter le code avec doxygen.
+- Revoir l'identification des pid.
+[FIXED] - Intégrer le timeout via un select.
+
