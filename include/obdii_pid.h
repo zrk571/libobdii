@@ -22,10 +22,10 @@
 /**
  * OBDII Pids definition.
  */
-#define SUPPORTED_PIDS           0
+#define SUPPORTED_PIDS_1         0
 #define ENGINE_LOAD              1
 #define ENGINE_RPM               2
-#define ENGINE_UPTIME            3
+#define ENGINE_OIL_TEMP          3
 #define TEMP_COOLANT             4
 #define TEMP_AIR_INTAKE          5
 #define PRESSURE_FUEL_RAIL       6

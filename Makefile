@@ -13,7 +13,6 @@ all: $(OBJ)
 %.o : %.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o $@ -c $^
 
-
 clean :
 	rm -rf $(SRC_DIR)*.o
 

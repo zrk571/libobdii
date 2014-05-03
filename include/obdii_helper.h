@@ -51,7 +51,7 @@ int convert_to_min(char* data);
  *
  *
  */
-double maf(char* data);
+void maf(char* data);
 
 
 /**
@@ -59,7 +59,7 @@ double maf(char* data);
  *
  *
  */
-double throttle_position(char* data);
+void throttle_position(char* data);
 
 
 /**
@@ -75,7 +75,8 @@ double intake_pressure(char* data);
  *
  *
  */
-double rpm(char* data);
+void rpm(char* data);
+
 
 
 /**
@@ -83,7 +84,39 @@ double rpm(char* data);
  *
  *
  */
-double speed(char* data);
+void load(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_oil_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_coolant_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_intake_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void speed(char* data);
 
 
 /**
@@ -100,14 +133,6 @@ double percent_scale(char* data);
  *
  */
 double ignition_timming_advance(char* data);
-
-
-/**
- *
- *
- *
- */
-double coolant_temperature(char* data);
 
 
 /**

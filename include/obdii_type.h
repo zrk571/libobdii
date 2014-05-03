@@ -79,9 +79,10 @@ typedef struct obdii_handler{
 typedef struct obdii_pid{
   unsigned short int pid;           /*!< PID Number */
   const char* code;                 /*!< PID Code */
+  const short int range;            /*!< PID Range */
   const char* name;                 /*!< PID name */
   const char* unit;                 /*!< PID units */
-  void* (*fct_helper) (char* data); /*!< Pointer to helper function which need to be used */
+  void (*fct_helper) (char* data); /*!< Pointer to helper function which need to be used */
 } obdii_pid;
 
 
@@ -104,5 +105,14 @@ typedef struct obdii_response{
   char* buffer;   /*!< ECU response */
   char* err_str;  /*!< ECU error response */
 } obdii_response;
+
+
+/**
+ * \struct This defines vars used to define ECU available PID.
+ * \biref This defines vars used to define ECU available PID for each range.
+ */
+typedef struct obdii_available_pid{
+  int range[10];   /*!< Tab for each PID range */
+} obdii_available_pid;
 
 #endif

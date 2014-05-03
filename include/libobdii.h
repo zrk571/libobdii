@@ -58,6 +58,14 @@ obdii_response* obdii_malloc_response();
 
 
 /**
+ * \fn Returns a well malloced obdii_available_pid.
+ * 
+ * \return a well malloced obdii_available_pid.
+ */
+obdii_available_pid* obdii_malloc_available_pid();
+
+
+/**
  * \fn Returns an array of all eligible devices.
  * \brief Returns an array of all eligible devices..
  * 
@@ -113,6 +121,15 @@ short int obdii_free_request(obdii_request* request);
 
 
 /**
+ * \fn Suitable to free obdii_request.
+ * \brief Free malloced memory used as obdii_response.
+ *
+ * \param available_pid  available pid list. 
+ */
+short int obdii_free_available_pid(obdii_available_pid* available_pid);
+
+
+/**
  * \fn Ask ECU with a specific request.
  * \brief Ask ECU with a specific obdii request and put response into obdii_response.
  *
@@ -150,13 +167,25 @@ short int obdii_retrieve_raw(obdii_handler* handler, char* buffer);
 
 /**
  * \fn Retrieve ELM interface version.
- * \brief etrieve ELM interface version.
+ * \brief retrieve ELM interface version.
  *
  * \param handler obdii handler.
  * 
  * \return request status  > 0 OK ; <0 KO  
  */
 short int obdii_retrieve_elm_version(obdii_handler* handler);
+
+
+/**
+ * \fn Retrieve available pid.
+ * \brief retrieve all available pid for the current car.
+ *
+ * \param handler obdii handler.
+ * \param available obdii pid list.
+ * 
+ * \return request status  > 0 OK ; <0 KO  
+ */
+short int obdii_retrieve_available_pid(obdii_handler* handler, obdii_available_pid* available_pid);
 
 
 /**
@@ -212,6 +241,16 @@ const char* obdii_get_name(obdii_pid pid);
 
 
 /**
+ * \fn Retrieve PID code.
+ *
+ * \param pid PID.
+ *
+ * \return PID code.
+ */
+const char* obdii_get_code(obdii_pid pid);
+
+
+/**
  * \fn Retrieve PID unit.
  *
  * \param pid PID.
@@ -222,6 +261,16 @@ const char* obdii_get_unit(obdii_pid pid);
 
 
 /**
+ * \fn Retrieve PID range.
+ *
+ * \param pid PID.
+ *
+ * \return PID range.
+ */
+short int obdii_get_range(obdii_pid pid);
+
+
+/**
  * \fn Retrieve PID function helper.
  *
  * \param pid PID.
@@ -229,6 +278,16 @@ const char* obdii_get_unit(obdii_pid pid);
  * \return PID function helper.
  */
 void* obdii_get_fct_helper(obdii_pid pid);
+
+
+/**
+ * \fn Retrieve reponse value.
+ *
+ * \param response request response.
+ *
+ * \return Request response value.
+ */
+char* obdii_get_response_value(obdii_response response);
 
 
 /**
@@ -248,6 +307,17 @@ void print_pid_info(obdii_pid pid);
  * \return PID unit.
  */
 void print_pid_info_no(short int pid_no);
+
+
+/**
+ * \fn Check if specified pid is available.
+ *
+ * \param available_pid  available pid list. 
+ * \param pid PID.
+ *
+ * \return request status  > 0 OK ; <=0 KO 
+ */
+short int obdii_pid_is_available(obdii_available_pid* available_pid, obdii_pid* pid);
 
 
 #endif

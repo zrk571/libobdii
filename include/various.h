@@ -36,3 +36,15 @@ void _debug_printf(const char* message);
  * \return tab endded with NULL value. 
  */
 char** split_in_array(char c, char* data);
+
+
+/**
+ * \fn reverse bit order from most significant bit to less one. 
+ * \brief rever bit order from an unsigned integer from MSB to LSB order.
+ *
+ * \param num integer to convert
+ * \param numBits number of bits to convert.
+ *
+ * \return number with reversed bit order. 
+ */
+int msb_to_lsb(unsigned int num, unsigned int numBits);

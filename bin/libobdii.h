@@ -28,8 +28,8 @@
 
 /* OBDII COMMAND WORDS */
 #define OBDII_INITIALIZE "ATZ"
-#define OBDII_ECHO_OFF   "AT E0"
-#define OBDII_INITCAN    "01 00"
+#define OBDII_ECHO_OFF   "ATE0"
+#define OBDII_INITCAN    "0100"
 #define OBDII_CLOSE      "ATZ"
 #define OBDII_EOC        "\r\n"
 
@@ -65,10 +65,10 @@
 /**
  * OBDII Pids definition.
  */
-#define SUPPORTED_PIDS           0
+#define SUPPORTED_PIDS_1         0
 #define ENGINE_LOAD              1
 #define ENGINE_RPM               2
-#define ENGINE_UPTIME            3
+#define ENGINE_OIL_TEMP          3
 #define TEMP_COOLANT             4
 #define TEMP_AIR_INTAKE          5
 #define PRESSURE_FUEL_RAIL       6
@@ -77,7 +77,6 @@
 #define TIMING_ADVANCE           9
 #define MASS_AIR_FLOW            10
 #define THROTTLE_POSITION        11
-
 
 /**
  * \enum obdii_state
@@ -139,6 +138,21 @@ typedef struct obdii_pid{
 
 
 /**
+ * \struct This defines vars used to describe ECU PID.
+ * \brief  This defines vars used to define all needed data for an ECU PID.
+ * 
+ */
+typedef struct obdii_pid{
+  unsigned short int pid;           /*!< PID Number */
+  const char* code;                 /*!< PID Code */
+  const short int range;            /*!< PID Range */
+  const char* name;                 /*!< PID name */
+  const char* unit;                 /*!< PID units */
+  void (*fct_helper) (char* data); /*!< Pointer to helper function which need to be used */
+} obdii_pid;
+
+
+/**
  * \struct This defines vars used to define ECU request.
  * \brief This defines vars used to define ECU request.
  *
@@ -157,7 +171,6 @@ typedef struct obdii_response{
   char* buffer;   /*!< ECU response */
   char* err_str;  /*!< ECU error response */
 } obdii_response;
-
 
 
 /**
@@ -180,6 +193,14 @@ obdii_handler* obdii_get_handler(char* device, obdii_speed speed, unsigned short
  * \return a well malloced obdii_response.
  */
 obdii_response* obdii_malloc_response();
+
+
+/**
+ * \fn Returns a well malloced obdii_available_pid.
+ * 
+ * \return a well malloced obdii_available_pid.
+ */
+obdii_available_pid* obdii_malloc_available_pid();
 
 
 /**
@@ -238,6 +259,15 @@ short int obdii_free_request(obdii_request* request);
 
 
 /**
+ * \fn Suitable to free obdii_request.
+ * \brief Free malloced memory used as obdii_response.
+ *
+ * \param available_pid  available pid list. 
+ */
+short int obdii_free_available_pid(obdii_available_pid* available_pid);
+
+
+/**
  * \fn Ask ECU with a specific request.
  * \brief Ask ECU with a specific obdii request and put response into obdii_response.
  *
@@ -275,13 +305,25 @@ short int obdii_retrieve_raw(obdii_handler* handler, char* buffer);
 
 /**
  * \fn Retrieve ELM interface version.
- * \brief etrieve ELM interface version.
+ * \brief retrieve ELM interface version.
  *
  * \param handler obdii handler.
  * 
  * \return request status  > 0 OK ; <0 KO  
  */
 short int obdii_retrieve_elm_version(obdii_handler* handler);
+
+
+/**
+ * \fn Retrieve available pid.
+ * \brief retrieve all available pid for the current car.
+ *
+ * \param handler obdii handler.
+ * \param available obdii pid list.
+ * 
+ * \return request status  > 0 OK ; <0 KO  
+ */
+short int obdii_retrieve_available_pid(obdii_handler* handler, obdii_available_pid* available_pid);
 
 
 /**
@@ -337,6 +379,16 @@ const char* obdii_get_name(obdii_pid pid);
 
 
 /**
+ * \fn Retrieve PID code.
+ *
+ * \param pid PID.
+ *
+ * \return PID code.
+ */
+const char* obdii_get_code(obdii_pid pid);
+
+
+/**
  * \fn Retrieve PID unit.
  *
  * \param pid PID.
@@ -347,6 +399,16 @@ const char* obdii_get_unit(obdii_pid pid);
 
 
 /**
+ * \fn Retrieve PID range.
+ *
+ * \param pid PID.
+ *
+ * \return PID range.
+ */
+short int obdii_get_range(obdii_pid pid);
+
+
+/**
  * \fn Retrieve PID function helper.
  *
  * \param pid PID.
@@ -354,6 +416,16 @@ const char* obdii_get_unit(obdii_pid pid);
  * \return PID function helper.
  */
 void* obdii_get_fct_helper(obdii_pid pid);
+
+
+/**
+ * \fn Retrieve reponse value.
+ *
+ * \param response request response.
+ *
+ * \return Request response value.
+ */
+char* obdii_get_response_value(obdii_response response);
 
 
 /**
@@ -373,6 +445,17 @@ void print_pid_info(obdii_pid pid);
  * \return PID unit.
  */
 void print_pid_info_no(short int pid_no);
+
+
+/**
+ * \fn Check if specified pid is available.
+ *
+ * \param available_pid  available pid list. 
+ * \param pid PID.
+ *
+ * \return request status  > 0 OK ; <=0 KO 
+ */
+short int obdii_pid_is_available(obdii_available_pid* available_pid, obdii_pid* pid);
 
 
 /**
@@ -402,7 +485,7 @@ int convert_to_min(char* data);
  *
  *
  */
-double maf(char* data);
+void maf(char* data);
 
 
 /**
@@ -410,7 +493,7 @@ double maf(char* data);
  *
  *
  */
-double throttle_position(char* data);
+void throttle_position(char* data);
 
 
 /**
@@ -426,7 +509,8 @@ double intake_pressure(char* data);
  *
  *
  */
-double rpm(char* data);
+void rpm(char* data);
+
 
 
 /**
@@ -434,7 +518,39 @@ double rpm(char* data);
  *
  *
  */
-double speed(char* data);
+void load(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_oil_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_coolant_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void engine_intake_temp(char* data);
+
+
+/**
+ *
+ *
+ *
+ */
+void speed(char* data);
 
 
 /**
@@ -458,15 +574,8 @@ double ignition_timming_advance(char* data);
  *
  *
  */
-double coolant_temperature(char* data);
-
-
-/**
- *
- *
- *
- */
 double fuel_trim_percent(char* data);
+
 
 
 

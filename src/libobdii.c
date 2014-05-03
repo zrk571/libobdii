@@ -1,4 +1,5 @@
 #include"../include/libobdii.h"
+#include "../include/various.h"
 
 obdii_handler* obdii_get_handler(char* device, obdii_speed speed, unsigned short int timeout, unsigned short int retry)
 {
@@ -26,14 +27,32 @@ obdii_response* obdii_malloc_response()
 
   response = (obdii_response*) malloc(sizeof(obdii_response));  
   if (response != NULL) {
-    response->buffer = (char*) malloc(sizeof(char)*16);
-    if(response->buffer == NULL){
+    response->buffer = (char*) malloc(sizeof(char)*8);
+    if(response->buffer != NULL){
+        memset(response->buffer, '\0', sizeof(char)*8);       
+    }
+    else{
       free(response);
       return NULL;
     }
   }
 
   return response;
+}
+
+
+obdii_available_pid* obdii_malloc_available_pid()
+{
+    obdii_available_pid* available_pid = NULL;
+    
+    available_pid = (obdii_available_pid*) malloc(sizeof(obdii_available_pid));
+    if(available_pid != NULL){
+        int i;
+        for(i=0; i<10; i++){
+            available_pid->range[i] = -1;
+        }
+    }
+    return available_pid;
 }
 
 
@@ -209,7 +228,7 @@ short int obdii_send_raw(obdii_handler* handler, char* cmd)
         }
       }
       else if(ret_code == 0){
-          printf("no writted data\n");
+          printf("no written data\n");
           retry++;
       }
     }
@@ -245,7 +264,7 @@ short int obdii_retrieve_raw(obdii_handler* handler, char* buffer)
           buffer[index] = '\0';
           break;
         }
-        else if(*(buffer+index) != '>' || *(buffer+index) != ' '){
+        else if(buffer[index] != '>' && buffer[index] != ' '){
           index = index++ % 254;
         }
       }
@@ -254,7 +273,7 @@ short int obdii_retrieve_raw(obdii_handler* handler, char* buffer)
         retry++;
       }
     }
-
+    printf("%s\n", buffer);
     if(retry < handler->max_retry && count > 0){
       return OBDII_OK;
     }
@@ -271,6 +290,27 @@ short int obdii_retrieve_elm_version(obdii_handler* handler)
   return OBDII_NODATA;
 }
 
+
+short int obdii_retrieve_available_pid(obdii_handler* handler, obdii_available_pid* available_pid)
+{
+  if(handler != NULL && handler->state == ONLINE){
+    obdii_response* response = obdii_malloc_response();
+    obdii_request request;
+    obdii_pid pid = obdii_get_pid(SUPPORTED_PIDS_1);
+    request.pid = &pid;
+    
+    obdii_ask(handler, &request, response);
+    
+    char* pid_response = obdii_get_response_value(*response);
+    if(pid_response != NULL){
+      available_pid->range[0] = msb_to_lsb(atoi(pid_response), 8); 
+      return OBDII_OK;
+    }
+    return OBDII_ERROR;
+  }
+  
+  return OBDII_NODATA;        
+}
 
 short int obdii_free_handler(obdii_handler* handler)
 {
@@ -294,6 +334,15 @@ short int obdii_free_response(obdii_response* response)
     free(response);
   }
   return 1;
+}
+
+
+short int obdii_free_available_pid(obdii_available_pid* available_pid)
+{
+   if(available_pid != NULL){
+       free(available_pid);
+  }
+  return 1;    
 }
 
 
@@ -337,8 +386,8 @@ short int obdii_ask(obdii_handler* handler, obdii_request* request, obdii_respon
         return OBDII_ERROR;
       }
       else if(strlen(response->buffer) > 0){
-	//TODO: Process with helper ned to be done here.
-
+	//TODO: Process with helper need to be done here.
+        request->pid->fct_helper(response->buffer);
 
         return OBDII_OK;
       }
@@ -388,9 +437,21 @@ const char* obdii_get_name(obdii_pid pid)
 }
 
 
+const char* obdii_get_code(obdii_pid pid)
+{
+  return pid.code;
+}
+
+
 const char* obdii_get_unit(obdii_pid pid)
 {
   return pid.unit;
+}
+
+
+short int obdii_get_range(obdii_pid pid)
+{
+  return pid.range;
 }
 
 
@@ -400,13 +461,20 @@ void* obdii_get_fct_helper(obdii_pid pid)
 }
 
 
+char* obdii_get_response_value(obdii_response response)
+{
+    return response.buffer;
+}
+
+
 void print_pid_info(obdii_pid pid)
 {
   fprintf(stdout, "PID No : %d\n\
 -------\n\
 Summary : %s\n\
 Code    : %s\n\
-Units   : %s\n", pid.pid, pid.name, pid.code, pid.unit);
+Mod     : %d\n\
+Units   : %s\n", pid.pid, pid.name, pid.code, pid.range, pid.unit);
 }
 
 
@@ -417,4 +485,20 @@ void print_pid_info_no(short int pid_no)
   obdii_pid pid  = standard_pid_list[pid_no];
  
   print_pid_info(pid);
+}
+
+
+short int obdii_pid_is_available(obdii_available_pid* available_pid, obdii_pid* pid)
+{
+    if(available_pid != NULL && pid != NULL){
+        int available_pid_in_mod = -1;
+        available_pid_in_mod = available_pid->range[obdii_get_range(*pid)];
+        
+        if(available_pid_in_mod > -1){
+            int pid_code = msb_to_lsb(atoi(obdii_get_code(*pid)+2), 8);
+            return ((available_pid_in_mod & pid_code) > 0); 
+        }
+        return OBDII_ERROR;
+    }
+    return OBDII_ERROR;
 }

@@ -51,3 +51,19 @@ char** split_in_array(char c, char* data){
 
   return NULL;
 }
+
+
+int msb_to_lsb(unsigned int num, unsigned int numBits)
+{
+    unsigned int reversedNum;
+    unsigned int mask = 0;
+
+    mask = (0x1 << (numBits/2)) - 1;
+
+    if (numBits == 1){
+        return num;
+    }
+    reversedNum = msb_to_lsb(num >> numBits/2, numBits/2) | msb_to_lsb((num & mask), numBits/2) << numBits/2;
+    
+    return reversedNum;
+}
